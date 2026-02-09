@@ -1,0 +1,29 @@
+## Best Practices:
+- Plan for API versioning from the start (e.g., using URL prefixes or headers).
+- Code must be modular, layered, and production-oriented. Concerns must never be mixed across layers.
+- Chain related dependencies instead of duplicating validation logic. Dependencies are auto-cached within request scope.
+- DTOs (Pydantic) ≠ Domain Models ≠ Database Models (ORM)
+- Use lifespan events for startup/shutdown logic (database connections, cache initialization, resource cleanup).
+- Implement request ID middleware for correlation tracking. Inject IDs into structured logs, exception contexts, and response headers for end-to-end tracing.
+- Don’t use a static DB connection string in env vars. Instead, define atomic vars (username, password, host, port, name, dialect) and build the URL at runtime in code.
+
+## Readability: 
+- Structure routes and dependencies clearly to optimize readability and maintainability. 
+
+## Performance Optimization: 
+- Optimize for performance using async functions for I/O-bound tasks, caching strategies.
+- Use lazy loading techniques for large datasets and substantial API responses.
+- **RORO Pattern:** "Receive an Object, Return an Object." Use dedicated Pydantic models for Input (`UserCreate`) and Output (`UserResponse`). Never return SQLAlchemy models directly.
+- Optimize FastAPI apps for serverless environments by minimizing cold start times.
+- Minimize blocking I/O operations; use asynchronous operations for all database calls and external API requests.
+
+## Error Handling & Validation : 
+- Use middleware for handling unexpected errors, logging, and error monitoring.
+- Handle errors at the beginning of functions with early returns.
+- Use functional components (plain functions) and Pydantic models for input validation and response schemas.
+- Use specific exception types, provide informative error messages, and handle exceptions gracefully. Implement custom exception classes when needed. Avoid bare `except` clauses.
+- Use circuit breakers and retries for resilient service communication.
+- Validate path/query parameters with Pydantic models, not primitive types. Use custom validators for complex business rules.
+
+## Heads Up / Warning :
+- Password Hashing Rule: When using passlib, do not allow `bcrypt ≥ 5.0.0`; either pin `bcrypt==4.3.0` or switch to `argon2-cffi`. Reason: `bcrypt ≥ 5` breaks `passlib`, causing runtime authorization failures and hard-to-debug production bugs.
